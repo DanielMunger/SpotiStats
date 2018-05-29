@@ -5,7 +5,7 @@
 
 import os, sys, json, logging, argparse, collections
 import spotipy, spotipy.util as util, numpy as np
-
+import pandas as pd, seaborn as sns, matplotlib.pyplot as plt
 import fcntl, termios, struct
 
 from Track import Track
@@ -117,6 +117,11 @@ def trackFeatures(token, username):
         tracks.append(newTrack)
 
     drawTrackFeatures(tracks)
+    analyze(tracks)
+
+def analyze(tracks):
+        df_features = pd.DataFrame(tracks)[["id", "analysis_url", "duration_ms", "acousticness", "danceability", "energy", "instrumentalness", "liveness", "loudness", "valence",
+        "speechiness", "key", "mode", "tempo", "time_signature"]]
 
 if __name__== "__main__":
   main()
