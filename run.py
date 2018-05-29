@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
-import sys, json, logging, argparse, collections
-import spotipy, spotipy.util as util
 
+# mortdecai13
 
-#logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+import os, sys, json, logging, argparse, collections
+import spotipy, spotipy.util as util, numpy as np
+
+import fcntl, termios, struct
+
+from Track import Track
+
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 #TODO:
@@ -14,6 +20,7 @@ import spotipy, spotipy.util as util
 # graphing and mapping of existing library
 # incorporate database work
 # make it a console app
+    # error handling
 
 creds = json.load(open('./credentials.json'))
 client_id = creds['SPOTIPY_CLIENT_ID']
@@ -23,36 +30,76 @@ scope = 'user-top-read user-library-read'
 
 
 def main():
-    (token, username) = authenticate()
+    displayTitle()
+    username = input('Please enter your Spotify username: ')
+    if len(sys.argv) == 0:
+        print('Please, enter your username')
+    (token) = authenticate(username)
     trackFeatures(token, username)
 
 
-def authenticate():
+
+
+#graphic functions
+def displayTitle():
+    os.system('clear')
+    (width, height) = terminal_size()
+    print("*"*width)
+    print("\t            Welcome to SpotiStats!                  \t")
+    print("\t SPOTISTATS: A terminal app to analyze spotify data \t")
+    print("*"*width)
+
+def terminal_size():
+    #not my code, but it's cool
+    th, tw, hp, wp = struct.unpack('HHHH',
+    fcntl.ioctl(0, termios.TIOCGWINSZ,
+    struct.pack('HHHH', 0, 0, 0, 0)))
+    return tw, th
+
+def drawTrackFeatures(tracks):
+    # header
+    (width, height) = terminal_size()
+    header = ['Artist', 'Title', 'Duration', 'Danceability', 'Energy', 'Key', 'Loudness', 'Acousticness', 'Speechiness', 'Instrumentalness', 'Liveness', 'Valence', 'Mode']
+    headerOut = ''
+    for item in header:
+        headerOut += '| ' + str(item) + ' '
+    headerOut += '\n'+'_'*width
+
+    # make it pretty
+    print(headerOut)
+    for track in tracks:
+        row = [track.artist, track.title, str(track.duration)+'s', track.danceability, track.energy, track.key, track.loudness, track.acousticness, track.speechiness, track.instrumentalness, track.liveness, track.valence, track.mode]
+        rowOut = ''
+        for item in row:
+            rowOut += '| ' + str(item) + ' '
+        print(rowOut)
+
+#auth and user interaction
+def authenticate(username):
     #Check for username
-    if len(sys.argv) > 1:
-        username = sys.argv[1]
         token = util.prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
         if(token):
             print('User was authenticated successfully.')
-
-            return(token, username)
+            return(token)
             #trackFeatures(token, username)
         else:
             print("Authentication failed for ", username)
-    else:
-        print("Please specify a user to Authenticate" % (sys.argv[0]))
-        sys.exit()
+    # else:
+    #     print("Please specify a user to Authenticate" % (sys.argv[0]))
+    #     sys.exit()
 
+
+#analysis and data gathering
 def trackFeatures(token, username):
     sp = spotipy.Spotify(auth=token)
     user = sp.user(username)
     recently_played = sp.current_user_top_tracks(limit=5)
-
-    print('Track Name \t')
+    tracks = []
     for track in recently_played['items']:
-        track_analysis = sp.audio_analysis(track['id'])
+        #track_analysis = sp.audio_analysis(track['id'])
         track_features = sp.audio_features(track['id'])
         duration = track_features[0]['duration_ms']
+        duration /=1000
         danceability = track_features[0]['danceability']
         energy = track_features[0]['energy']
         key = track_features[0]['key']
@@ -63,11 +110,13 @@ def trackFeatures(token, username):
         liveness = track_features[0]['liveness']
         valence = track_features[0]['valence']
         mode = track_features[0]['mode']
+        artist = track['album']['artists'][0]['name']
+        title = track['name']
 
-        print(track['name'])
-        #logging.debug('this is a message
-    return
+        newTrack = Track(artist, title, duration, danceability, energy, key, loudness, acousticness, speechiness, instrumentalness, liveness, valence, mode)
+        tracks.append(newTrack)
 
+    drawTrackFeatures(tracks)
 
 if __name__== "__main__":
   main()
