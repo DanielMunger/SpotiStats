@@ -121,12 +121,18 @@ def trackFeatures(token, username):
         newTrack = Track(artist, title, duration, danceability, energy, key, loudness, acousticness, speechiness, instrumentalness, liveness, valence, mode)
         tracks.append(newTrack)
 
-    drawTrackFeatures(tracks)
     analyze(tracks)
+    #drawTrackFeatures(tracks)
 
 def analyze(tracks):
-        df_features = pd.DataFrame(tracks)[["id", "analysis_url", "duration_ms", "acousticness", "danceability", "energy", "instrumentalness", "liveness", "loudness", "valence",
-        "speechiness", "key", "mode", "tempo", "time_signature"]]
+    # new dataframe structure
+    trackDict = dict()
+    for track in tracks:
+        # add in data to dataframe
+        trackDict[track.title] = track.pandasDict
+
+    df = pd.DataFrame.from_dict(trackDict, orient='index', columns=['artist', 'duration', 'danceability', 'energy', 'key', 'loudness', 'acousticness', 'speechiness', 'instrumentalness', 'liveness', 'valence', 'mode'])
+    print(df)
 
 if __name__== "__main__":
   main()
