@@ -7,10 +7,11 @@ import os, sys, json, logging, argparse, collections
 import spotipy, spotipy.util as util, numpy as np
 import pandas as pd, seaborn as sns, matplotlib.pyplot as plt
 import fcntl, termios, struct
+import pprint
 
 from Track import Track
 
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+#logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 #TODO:
@@ -77,13 +78,14 @@ def drawTrackFeatures(tracks):
 #auth and user interaction
 def authenticate(username):
     #Check for username
-        token = util.prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
-        if(token):
-            print('User was authenticated successfully.')
-            return(token)
-            #trackFeatures(token, username)
-        else:
-            print("Authentication failed for ", username)
+    #logging.debug('Authenticating')
+    token = util.prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
+    if(token):
+        print('User was authenticated successfully.')
+        return(token)
+        #trackFeatures(token, username)
+    else:
+        print("Authentication failed for ", username)
     # else:
     #     print("Please specify a user to Authenticate" % (sys.argv[0]))
     #     sys.exit()
@@ -93,11 +95,14 @@ def authenticate(username):
 def trackFeatures(token, username):
     sp = spotipy.Spotify(auth=token)
     user = sp.user(username)
-    recently_played = sp.current_user_top_tracks(limit=5)
+    saved_tracks = sp.current_user_saved_tracks(limit=5)
+    pp = pprint.PrettyPrinter(indent=1, depth=2)
+    #pp.pprint(saved_tracks['items'])
     tracks = []
-    for track in recently_played['items']:
-        #track_analysis = sp.audio_analysis(track['id'])
-        track_features = sp.audio_features(track['id'])
+    for track in saved_tracks['items']:
+        #pp.pprint(track['track']['id'])
+        #track_analysis = sp.audio_analysis(track['track']['id'])
+        track_features = sp.audio_features(track['track']['id'])
         duration = track_features[0]['duration_ms']
         duration /=1000
         danceability = track_features[0]['danceability']
@@ -110,8 +115,8 @@ def trackFeatures(token, username):
         liveness = track_features[0]['liveness']
         valence = track_features[0]['valence']
         mode = track_features[0]['mode']
-        artist = track['album']['artists'][0]['name']
-        title = track['name']
+        artist = track['track']['album']['artists'][0]['name']
+        title = track['track']['name']
 
         newTrack = Track(artist, title, duration, danceability, energy, key, loudness, acousticness, speechiness, instrumentalness, liveness, valence, mode)
         tracks.append(newTrack)
