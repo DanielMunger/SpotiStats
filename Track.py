@@ -17,3 +17,10 @@ class Track:
         self.liveness = liveness
         self.valence = valence
         self.mode = mode
+
+    @property
+    def pandasDict(self):
+        return {
+            'artist': self.artist, 'duration': self.duration, 'danceability': self.danceability, 'energy': self.energy, 'key': self.key, 'loudness': self.loudness, 'acousticness': self.acousticness, 'speechiness': self.speechiness, 'instrumentalness': self.instrumentalness, 'liveness': self.liveness,
+            'valence': self.valence, 'mode': self.mode
+        }
