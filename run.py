@@ -2,12 +2,16 @@
 
 
 # mortdecai13
+# iterm plotter?
+# https://github.com/daleroberts/itermplot
+
 
 import os, sys, json, logging, argparse, collections
 import spotipy, spotipy.util as util, numpy as np
 import pandas as pd, seaborn as sns, matplotlib.pyplot as plt
 import fcntl, termios, struct
 import pprint
+import IPython
 
 from Track import Track
 
@@ -95,7 +99,7 @@ def authenticate(username):
 def trackFeatures(token, username):
     sp = spotipy.Spotify(auth=token)
     user = sp.user(username)
-    saved_tracks = sp.current_user_saved_tracks(limit=5)
+    saved_tracks = sp.current_user_saved_tracks(limit=50)
     pp = pprint.PrettyPrinter(indent=1, depth=2)
     #pp.pprint(saved_tracks['items'])
     tracks = []
@@ -128,11 +132,21 @@ def analyze(tracks):
     # new dataframe structure
     trackDict = dict()
     for track in tracks:
-        # add in data to dataframe
+        # add in data to dataframe        
         trackDict[track.title] = track.pandasDict
 
     df = pd.DataFrame.from_dict(trackDict, orient='index', columns=['artist', 'duration', 'danceability', 'energy', 'key', 'loudness', 'acousticness', 'speechiness', 'instrumentalness', 'liveness', 'valence', 'mode'])
-    print(df)
+    # print(df)
+    songData = pd.DataFrame.from_dict(trackDict, orient='index', columns=['danceability', 'energy', 'key', 'loudness', 'acousticness', 'speechiness', 'instrumentalness', 'liveness', 'valence', 'mode'])
+    songData.info(verbose=True)
+    
+    songData.plot.scatter(x='danceability', y='energy')
+    #plt.show()
+    
+    # mean of each column
+    mean = df.mean() # is no longer a df
+    print('\n', mean)
 
+    
 if __name__== "__main__":
   main()
