@@ -99,7 +99,7 @@ def authenticate(username):
 def trackFeatures(token, username):
     sp = spotipy.Spotify(auth=token)
     user = sp.user(username)
-    saved_tracks = sp.current_user_saved_tracks()
+    saved_tracks = sp.current_user_saved_tracks(limit=50)
     pp = pprint.PrettyPrinter(indent=1, depth=2)
     #pp.pprint(saved_tracks['items'])
     tracks = []
@@ -137,12 +137,13 @@ def analyze(tracks):
 
     df = pd.DataFrame.from_dict(trackDict, orient='index', columns=['artist', 'duration', 'danceability', 'energy', 'key', 'loudness', 'acousticness', 'speechiness', 'instrumentalness', 'liveness', 'valence', 'mode'])
     # print(df)
-    # IPython.embed()
 
     songData = pd.DataFrame.from_dict(trackDict, orient='index', columns=['danceability', 'energy', 'key', 'loudness', 'acousticness', 'speechiness', 'instrumentalness', 'liveness', 'valence', 'mode'])
     songDataNormalized = (songData - songData.mean()) / (songData.max() - songData.min())
     songData.describe()
     songDataNormalized.describe()
+
+    IPython.embed()
     songDataNormalized.plot.box()
     plt.show()
     songDataNormalized.plot.barh()
